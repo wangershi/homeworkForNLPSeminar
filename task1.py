@@ -6,8 +6,9 @@
     https://www.dazhuanlan.com/2020/01/21/5e264dc6220b4/
     https://mmchiou.gitbooks.io/ai_gc_methodology_2018_v1-private/content/zhong-wen-word2vector/ke-ji-da-lei-tai-jie-shao-wen-jian-wordvector-jeiba.html
 '''
+import fire
 import pandas as pd
-from nltk.tokenize.stanford_segmenter import StanfordSegmenter
+#from nltk.tokenize.stanford_segmenter import StanfordSegmenter
 
 def splitAllWord():
     segmenter = StanfordSegmenter()
@@ -98,18 +99,25 @@ def readAllWord():
             fw.write(word + "\n")
 
 def readModel():
-    pathOfModel = "sgns.target.word-word.dynwin5.thr10.neg5.dim300.iter5"
-    #dfOfModel = pd.read_csv(pathOfModel, delimiter=" ", error_bad_lines=False, engine="python")
+    #pathOfModel = "sgns.target.word-word.dynwin5.thr10.neg5.dim300.iter5"
+    pathOfModel = "small_word_vector.csv"
+    
     header = ["word"]
     for i in range(300):
         header.append(str(i))
-    dfOfModel = pd.read_csv(pathOfModel, delimiter=" ", error_bad_lines=False, header=None)
+    dfOfModel = pd.read_csv(pathOfModel, delimiter=" ", error_bad_lines=False, engine="python", header=None, encoding='utf-8')
     print (dfOfModel)
+    
+    with open("allWord.txt", "r", encoding='utf-8') as fr:
+        for line in fr.readlines():
+            word = line.split("\n")[0]
+            listOfWord = [word]
 
-def main():
-    splitAllWord()
-    #readAllWord()
-    #readModel()
+            try:
+                print (dfOfModel[dfOfModel[0] in listOfWord])
+            except:
+                pass
+            break
 
 if __name__ == "__main__":
-    main()
+    fire.Fire()
