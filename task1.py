@@ -1,27 +1,22 @@
 '''
-    https://www.jiqizhixin.com/articles/2018-05-15-10
-    https://github.com/Embedding/Chinese-Word-Vectors
-    https://github.com/brightmart/nlp_chinese_corpus
-    https://github.com/to-shimo/chinese-word2vec
-    https://www.dazhuanlan.com/2020/01/21/5e264dc6220b4/
-    https://mmchiou.gitbooks.io/ai_gc_methodology_2018_v1-private/content/zhong-wen-word2vector/ke-ji-da-lei-tai-jie-shao-wen-jian-wordvector-jeiba.html
+    I download the word vectors from https://github.com/Embedding/Chinese-Word-Vectors
 '''
 import fire
 import pandas as pd
-#from nltk.tokenize.stanford_segmenter import StanfordSegmenter
+from nltk.tokenize.stanford_segmenter import StanfordSegmenter
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
-def splitAllWord():
+def splitAllWord(typeOfDataset="dev"):
     segmenter = StanfordSegmenter()
     segmenter.default_config('zh')
 
     maxCount = 2000000
 
-    pathOfDev = "dataset/task1/dev.tsv"
+    pathOfDev = "dataset/task1/%s.tsv" % typeOfDataset
     dfOfDev = pd.read_csv(pathOfDev, delimiter="\t")
 
-    pathOfNewDev = "dev_split.tsv"
+    pathOfNewDev = "%s_split.tsv" % typeOfDataset
 
     count = 0
     with open(pathOfNewDev, "w", encoding='utf-8') as fw:
@@ -29,7 +24,7 @@ def splitAllWord():
             if count >= maxCount:
                 break
             if count % 100 == 0:
-                print ("[dev]count = %s" % count)
+                print ("[%s]count = %s" % (typeOfDataset, count))
 
             label = row[1]['label']
             fw.write(str(label))
