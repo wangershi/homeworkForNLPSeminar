@@ -44,7 +44,7 @@ def readAllWord():
 
     maxCount = 1000000
 
-    for typeOfDataset in ["dev", "test"]:
+    for typeOfDataset in ["dev", "test", "train"]:
         pathOfDataset = "%s_split.tsv" % typeOfDataset
         dfOfDataset = pd.read_csv(pathOfDataset, delimiter="\t", header=None)
         print (dfOfDataset)
