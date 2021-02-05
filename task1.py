@@ -3,11 +3,13 @@
 '''
 import fire
 import pandas as pd
-from nltk.tokenize.stanford_segmenter import StanfordSegmenter
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+import numpy as np
 
 def splitAllWord(typeOfDataset="dev"):
+    from nltk.tokenize.stanford_segmenter import StanfordSegmenter
+
     segmenter = StanfordSegmenter()
     segmenter.default_config('zh')
 
@@ -90,7 +92,7 @@ def readModel():
     print (vectorWord)
     vectorWord.to_csv("vectorWord.csv")
 
-def plot_with_labels(low_dim_embs, labels, filename='visualize_task1.png'):
+def plot_with_names(low_dim_embs, labels, filename='visualize_task1.png'):
     assert low_dim_embs.shape[0] >= len(labels), "More labels than embeddings"
     plt.figure(figsize=(100, 100))
     for i, label in enumerate(labels):
@@ -117,7 +119,7 @@ def visualizeVector():
 
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=500)
     low_dim_embs = tsne.fit_transform(dfData)
-    plot_with_labels(low_dim_embs, label)
+    plot_with_names(low_dim_embs, label)
 
 def prepareDataset(typeOfDataset="dev"):
     pathOfVector = "vectorWord.csv"
@@ -130,7 +132,7 @@ def prepareDataset(typeOfDataset="dev"):
     print (dfOfDataset)
 
     count = 0
-    with open("%s_vector.txt" % typeOfDataset, "w", encoding='utf-8') as fw:
+    with open("%s_vector.tsv" % typeOfDataset, "w", encoding='utf-8') as fw:
         for row in dfOfDataset.iterrows():
             if count % 100 == 0:
                 print ("[%s]count = %s\trow = %s" % (typeOfDataset, count, row))
@@ -155,6 +157,44 @@ def prepareDataset(typeOfDataset="dev"):
             fw.write("\n")
 
             count += 1
+
+def plot_with_labels(low_dim_embs, labels, filename='visualize_task2.png', number_label=2):
+    assert low_dim_embs.shape[0] >= len(labels), "More labels than embeddings"
+
+    listOfColor = ["#000000", "#FFFF00", "#FF00FF", "#00FFFF", "#FF0000", "#0000FF", "#00FF00"]
+    assert number_label <= len(listOfColor), "Two many labels, must less than %s" % len(listOfColor)
+
+    plt.figure(figsize=(10, 10))
+    for i, label in enumerate(labels):
+        if i % 100 == 0:
+            print ("i = %s\tlabel = %s" % (i, label))
+        x, y = low_dim_embs[i, :]
+        plt.scatter(x, y, c=listOfColor[label])
+
+    plt.savefig(filename)
+
+def visualizeDataset(typeOfDataset="dev"):
+    dfOfVector = pd.read_csv("%s_vector.tsv" % typeOfDataset, delimiter="\t", index_col=0, header=None).drop(labels=301, axis=1)
+    print (dfOfVector)
+
+    dfData = np.array(dfOfVector)
+    print (dfData)
+    m, n = dfData.shape
+    #print ("n = %s" % n)    # 300
+
+    label = dfOfVector.index
+    print (label)
+
+    w1 = [1 for i in range(n)]
+    w2 = [0 for i in range(n)]
+    w2[0] = 1
+    w2[1] = -w1[0]/w1[1]
+    w = np.array([w1, w2]).T
+    print (w.shape) # (300, 2)
+
+    low_dim_embs = np.matmul(dfData, w)
+    print ("low_dim_embs = %s" % low_dim_embs)
+    plot_with_labels(low_dim_embs, label, 'visualize_task2_%s.png' % typeOfDataset, 2)
 
 if __name__ == "__main__":
     fire.Fire()

@@ -286,7 +286,7 @@ def calcWs(alphas, dataArr, classLabels):
     w = np.zeros((n,1))
     for i in range(m):
         w += np.multiply(alphas[i]*labelMat[i], X[i,:].T)
-    return w
+    return w 
 
 if __name__ == '__main__':
     if False:
@@ -294,7 +294,11 @@ if __name__ == '__main__':
         b, alphas = smoP(dataArr, classLabels, 0.6, 0.001, 40)
     else:
         dataArr, classLabels = loadDataSet('dev_vector.tsv')
-        b, alphas = smoP(dataArr, classLabels, 0.6, 0.001, 2)
+        b, alphas = smoP(dataArr, classLabels, 60000, 10, 40000)
+    print ("alphas = %s" % alphas)
+    print (alphas.sum())
+    raise
     w = calcWs(alphas, dataArr, classLabels)
+    print (w.tolist())
     showClassifer(dataArr, classLabels, w, b)
 
