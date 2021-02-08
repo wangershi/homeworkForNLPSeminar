@@ -92,7 +92,7 @@ def readModel():
     print (vectorWord)
     vectorWord.to_csv("vectorWord.csv")
 
-def plot_with_names(low_dim_embs, labels, filename='visualize_task1.png'):
+def plot_with_names(low_dim_embs, labels, filename='task1_visualize.png'):
     assert low_dim_embs.shape[0] >= len(labels), "More labels than embeddings"
     plt.figure(figsize=(100, 100))
     for i, label in enumerate(labels):
@@ -195,6 +195,85 @@ def visualizeDataset(typeOfDataset="dev"):
     low_dim_embs = np.matmul(dfData, w)
     print ("low_dim_embs = %s" % low_dim_embs)
     plot_with_labels(low_dim_embs, label, 'visualize_task2_%s.png' % typeOfDataset, 2)
+
+def loadDataSet(fileName, ):
+    """
+    读取数据
+    Parameters:
+        fileName - 文件名
+    Returns:
+        dataMat - 数据矩阵
+        labelMat - 数据标签
+    """
+    dataset = np.array(pd.read_csv(fileName, delimiter="\t").dropna(axis=1))
+    dataMat = dataset[:, 1:]
+    labelMat = dataset[:, 0]
+    return dataMat, labelMat
+
+def showClassifer(dataMat, classLabels, model, typeOfDataset="train"):
+    """
+        the idea of algo is from https://cloud.tencent.com/developer/article/1537910
+    """
+    m, n = dataMat.shape    # n = 300
+
+    # get some internal parameters
+    w = model.coef_[0]
+    b = model.intercept_[0]
+
+    # adjust w, b to new axis
+    w1 = w / np.linalg.norm(w)
+    b /= np.linalg.norm(w)
+
+    # get another coordinate
+    w2 = [0 for i in range(n)]
+    w2[0] = 1
+    w2[1] = -w1[0]/w1[1]
+    w = np.array([w1, w2]).T    # (300, 2)
+
+    # transfer all points to 2-dimensional coordinates
+    dataMat = dataMat.dot(w) + b
+
+    # plot the points
+    plt.cla()
+    data_plus = []
+    data_minus = []
+    for i in range(dataMat.shape[0]):
+        if classLabels[i] > 0:
+            data_plus.append(dataMat[i])
+        else:
+            data_minus.append(dataMat[i])
+    data_plus_np = np.array(data_plus)
+    data_minus_np = np.array(data_minus)
+    plt.scatter(np.transpose(data_plus_np)[0], np.transpose(data_plus_np)[1], s=30, alpha=0.7)
+    plt.scatter(np.transpose(data_minus_np)[0], np.transpose(data_minus_np)[1], s=30, alpha=0.7)
+
+    plt.savefig("task1_svm_visualize_%s_.png" % typeOfDataset)
+
+def svm():
+    from sklearn import svm
+    ifVisualize = True
+
+    # load train dataset
+    trainDataArr, trainLabels = loadDataSet("train_vector.tsv")
+    model = svm.SVC(kernel='linear', C=2.0)
+    #model = svm.SVC(kernel='rbf', C=4.0)
+
+    # train
+    model.fit(trainDataArr, trainLabels)
+    print ("score of train: %s" % str(model.score(trainDataArr, trainLabels)))
+
+    # evaluate
+    devDataArr, devLabels = loadDataSet('dev_vector.tsv')
+    print ("score of dev: %s" % str(model.score(devDataArr, devLabels)))
+    
+    # test
+    testDataArr, testLabels = loadDataSet('test_vector.tsv')
+    print ("score of test: %s" % str(model.score(testDataArr, testLabels)))
+    
+    if ifVisualize:
+        showClassifer(trainDataArr, trainLabels, model, "train")
+        showClassifer(devDataArr, devLabels, model, "dev")
+        showClassifer(testDataArr, testLabels, model, "test")
 
 if __name__ == "__main__":
     fire.Fire()
